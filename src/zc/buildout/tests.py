@@ -3586,6 +3586,56 @@ def increment_on_command_line():
       recipe='zc.buildout:debug'
     """
 
+def increment_with_modular_configuration():
+    r"""
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... extends = projects.cfg
+    ... parts = p
+    ...
+    ... [p]
+    ... recipe = zc.buildout:debug
+    ... x = ${projects:parts} ${projects:develop}
+    ... ''')
+    >>> write('projects.cfg', '''
+    ... [buildout]
+    ... extends = base.cfg p1.cfg p2.cfg
+    ... ''')
+    >>> write('base.cfg', '''
+    ... [projects]
+    ... parts = foo
+    ... develop =
+    ... ''')
+    >>> write('p1.cfg', '''
+    ... [buildout]
+    ... extends = p1base.cfg
+    ...
+    ... [projects]
+    ... parts += p1part
+    ... develop += p1
+    ... ''')
+    >>> write('p1base.cfg', '''
+    ... [projects]
+    ... eggs += p1
+    ... ''')
+    >>> write('p2.cfg', '''
+    ... [buildout]
+    ... extends = p2base.cfg
+    ...
+    ... [projects]
+    ... parts += p2part
+    ... ''')
+    >>> write('p2base.cfg', '''
+    ... [projects]
+    ... eggs += p2
+    ... ''')
+
+    >>> print system(buildout),
+    Installing p.
+      recipe='zc.buildout:debug'
+      x='foo/np1part/np2part p1'
+    """
+
 ######################################################################
 
 def make_py_with_system_install(make_py, sample_eggs):
